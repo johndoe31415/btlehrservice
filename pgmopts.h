@@ -25,7 +25,7 @@
 #define __PGMOPTS_H__
 
 struct pgmopts_t {
-	const char *dest_mac_address;
+	char dest_mac_address[32];
 	const char *socket;
 };
 
