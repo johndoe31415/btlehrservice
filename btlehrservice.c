@@ -24,19 +24,90 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <linux/un.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include "containment.h"
 #include "pgmopts.h"
+#include "llist.h"
+
+struct connected_client_t {
+	int client_sd;
+	FILE *f;
+	struct server_ctx_t *server_ctx;
+	struct llist_element_t *client_list_element;
+};
+
+struct heartrate_state_t {
+	bool connected;
+	bool have_value;
+	double timestamp;
+	uint8_t last_heartrate;
+};
 
 struct server_ctx_t {
 	pthread_t btle_thread;
 	struct connection_params_t connection;
 	bool running;
+	struct llist_t clients;
+	struct heartrate_state_t hrm;
 };
+
+static void send_message_to_client(struct llist_element_t *element, void *ctx) {
+	struct connected_client_t *client = (struct connected_client_t*)element->payload;
+	char *message = (char*)ctx;
+	fprintf(client->f, "%s\n", message);
+	fflush(client->f);
+}
+
+static double now(void) {
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec + (1e-6 * tv.tv_usec);
+}
 
 static void containment_callback(const struct message_t *msg, void *vctx) {
 	struct server_ctx_t *server_ctx = (struct server_ctx_t*)vctx;
+	if (msg->msgtype == ATTEMPT_CONNECTION) {
+		server_ctx->hrm.connected = false;
+		server_ctx->hrm.have_value = false;
+		server_ctx->hrm.timestamp = 0;
+		server_ctx->hrm.last_heartrate = 0;
+	} else if ((msg->msgtype == NOTIFICATION) && (msg->data_length == 2)) {
+		server_ctx->hrm.connected = true;
+		server_ctx->hrm.have_value = (msg->data[1] != 0);
+		if (server_ctx->hrm.have_value) {
+			server_ctx->hrm.timestamp = now();
+			server_ctx->hrm.last_heartrate = msg->data[1];
+		}
+	}
+
+	char client_message[128];
+	if (!server_ctx->hrm.connected) {
+		snprintf(client_message, sizeof(client_message), "{ \"connected\": false }");
+	} else {
+		snprintf(client_message, sizeof(client_message), "{ \"connected\": true, \"have_value\": %s, \"ts\": %f, \"last_value\": %u }", server_ctx->hrm.have_value ? "true" : false, server_ctx->hrm.timestamp, server_ctx->hrm.last_heartrate);
+	}
 	fprintf(stderr, "containment callback: %d\n", msg->msgtype);
+	llist_traverse(&server_ctx->clients, send_message_to_client, client_message);
+}
+
+static void* client_thread_fnc(void *vctx) {
+	struct connected_client_t *ctx = (struct connected_client_t*)vctx;
+	while (ctx->server_ctx->running) {
+		uint8_t buffer[128];
+		ssize_t read_bytes = read(ctx->client_sd, buffer, sizeof(buffer));
+		if (read_bytes == 0) {
+			/* Client disconnected */
+			break;
+		}
+	}
+	fclose(ctx->f);
+	llist_remove_element(ctx->client_list_element);
+	return NULL;
 }
 
 static void* btle_thread_fnc(void *vctx) {
@@ -47,6 +118,72 @@ static void* btle_thread_fnc(void *vctx) {
 	return NULL;
 }
 
+static bool server_listening_loop(struct server_ctx_t *server_ctx) {
+	int sd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sd == -1) {
+		perror("socket");
+		return false;
+	}
+
+	unlink(pgmopts->socket);
+	struct sockaddr_un sockaddr = {
+		.sun_family = AF_UNIX,
+	};
+	strncpy(sockaddr.sun_path, pgmopts->socket, sizeof(sockaddr.sun_path) - 1);
+	if (bind(sd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == -1) {
+		perror("bind");
+		close(sd);
+		return false;
+	}
+
+	if (listen(sd, 5) == -1) {
+		perror("listen");
+		close(sd);
+		return false;
+	}
+
+	while (server_ctx->running) {
+		struct sockaddr_un peer = { 0 };
+		socklen_t socklen = sizeof(peer);
+		int client_sd = accept(sd, (struct sockaddr*)&peer, &socklen);
+		if (client_sd == -1) {
+			perror("accept");
+			close(sd);
+			return false;
+		}
+
+		/* We now have a new client that's connected */
+		struct connected_client_t *client = calloc(sizeof(*client), 1);
+		if (!client) {
+			perror("calloc");
+			close(client_sd);
+			close(sd);
+			return false;
+		}
+
+		client->client_sd = client_sd;
+		client->server_ctx = server_ctx;
+		client->f = fdopen(client->client_sd, "w");
+		client->client_list_element = llist_append(&server_ctx->clients, client, true);
+
+		pthread_t client_thread;
+		pthread_attr_t attrs;
+		pthread_attr_init(&attrs);
+		pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
+		if (pthread_create(&client_thread, &attrs, client_thread_fnc, client)) {
+			perror("pthread_create");
+			pthread_attr_destroy(&attrs);
+			close(client_sd);
+			close(sd);
+			return false;
+		}
+		pthread_attr_destroy(&attrs);
+	}
+
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	parse_cmdline_options(argc, argv);
 
@@ -55,6 +192,7 @@ int main(int argc, char **argv) {
 		.connection = {
 			.destination_address = pgmopts->dest_mac_address,
 		},
+		.clients = LINKEDLIST_INITIALIZER,
 	};
 
 	if (pthread_create(&server_ctx.btle_thread, NULL, btle_thread_fnc, &server_ctx)) {
@@ -62,9 +200,7 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (true) {
-		sleep(1);
-	}
+	server_listening_loop(&server_ctx);
 
 	return 0;
 }

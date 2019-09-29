@@ -10,7 +10,8 @@ OBJS := \
 	btlehrservice.o \
 	containment.o \
 	argparse.o \
-	pgmopts.o
+	pgmopts.o \
+	llist.o
 
 BINARIES := btlehrservice
 

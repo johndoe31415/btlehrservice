@@ -103,9 +103,6 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 	m_main_loop = g_main_loop_new(NULL, 0);
 	g_main_loop_run(m_main_loop);
 
-
-//		gattlib_register_on_disconnect(connection, NULL, NULL);
-//		gattlib_register_notification(connection, NULL, NULL);
 	gattlib_notification_stop(connection, &heartrate_uuid);
 	gattlib_disconnect(connection);
 
