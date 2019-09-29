@@ -81,8 +81,6 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 		}
 	}
 
-	fprintf(stderr, "Connected: %p\n", connection);
-
 	gattlib_register_notification(connection, notification_handler, &comm_fd);
 	gattlib_register_on_disconnect(connection, disconnect_handler, connection);
 
