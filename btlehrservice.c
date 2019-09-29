@@ -91,7 +91,6 @@ static void containment_callback(const struct message_t *msg, void *vctx) {
 	} else {
 		snprintf(client_message, sizeof(client_message), "{ \"connected\": true, \"have_value\": %s, \"ts\": %f, \"last_value\": %u }", server_ctx->hrm.have_value ? "true" : "false", server_ctx->hrm.timestamp, server_ctx->hrm.last_heartrate);
 	}
-	fprintf(stderr, "containment callback: %d\n", msg->msgtype);
 	llist_traverse(&server_ctx->clients, send_message_to_client, client_message);
 }
 
