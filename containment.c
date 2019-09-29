@@ -176,6 +176,12 @@ bool contained_connect(const struct connection_params_t *connection_params, cont
 	} else {
 		/* Child process */
 		close(pipe_read_fd);
+
+		/* Make the containment silent (lots of DBus messages spamming the
+		 * console otherwise) */
+		fclose(stdout);
+		fclose(stderr);
+
 		btle_connect(connection_params, pipe_write_fd);
 		exit(EXIT_SUCCESS);
 	}
