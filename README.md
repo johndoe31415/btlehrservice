@@ -40,6 +40,10 @@ connected to it. For example:
 { "connected": false }
 { "connected": false }
 { "connected": false }
+{ "connected": true, "have_value": false, "ts": 0.000000, "last_value": 0 }
+{ "connected": true, "have_value": false, "ts": 0.000000, "last_value": 0 }
+{ "connected": true, "have_value": false, "ts": 0.000000, "last_value": 0 }
+{ "connected": true, "have_value": false, "ts": 0.000000, "last_value": 0 }
 { "connected": true, "have_value": true, "ts": 1569758841.500977, "last_value": 78 }
 { "connected": true, "have_value": true, "ts": 1569758842.498586, "last_value": 78 }
 { "connected": true, "have_value": true, "ts": 1569758843.496032, "last_value": 78 }
