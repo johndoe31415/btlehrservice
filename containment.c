@@ -116,6 +116,24 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 	exit(EXIT_SUCCESS);
 }
 
+static void sigchld_handler(int signal) {
+	int status;
+	while (waitpid(-1, &status, WNOHANG) > 0);
+}
+
+static bool install_sigchld_handler(void) {
+	struct sigaction action = {
+		.sa_handler = sigchld_handler,
+		.sa_flags = SA_RESTART,
+	};
+	if (sigaction(SIGCHLD, &action, NULL)) {
+		perror("sigaction");
+		return false;
+	}
+
+	return true;
+}
+
 bool contained_connect(const struct connection_params_t *connection_params, containment_callback_fnc_t callback, void *callback_ctx) {
 	int pipefd[2];
 	if (pipe(pipefd) == -1) {
@@ -125,6 +143,13 @@ bool contained_connect(const struct connection_params_t *connection_params, cont
 
 	int pipe_read_fd = pipefd[0];
 	int pipe_write_fd = pipefd[1];
+
+	/* Install SIGCHLD handler */
+	if (!install_sigchld_handler()) {
+		close(pipe_read_fd);
+		close(pipe_write_fd);
+		return false;
+	}
 
 	fprintf(stderr, "fork()\n");
 	pid_t pid = fork();
@@ -166,10 +191,5 @@ bool contained_connect(const struct connection_params_t *connection_params, cont
 		exit(EXIT_SUCCESS);
 	}
 
-	/* Clean up child process */
-	int status;
-	sleep(1);
-	kill(pid, SIGKILL);
-	waitpid(pid, &status, 0);
 	return true;
 }
