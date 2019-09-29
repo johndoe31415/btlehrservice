@@ -41,11 +41,6 @@ static GMainLoop *m_main_loop;
 
 static void notification_handler(const uuid_t* uuid, const uint8_t* data, size_t data_length, void* user_data) {
 	int *msg_fd = (int*)user_data;
-	printf("Notification Handler %p: ", user_data);
-	for (int i = 0; i < data_length; i++) {
-		printf("%02x ", data[i]);
-	}
-	printf("\n");
 	struct message_t msg = {
 		.msgtype = NOTIFICATION,
 		.data_length = data_length,
@@ -148,7 +143,6 @@ bool contained_connect(const struct connection_params_t *connection_params, cont
 		return false;
 	}
 
-	fprintf(stderr, "fork()\n");
 	pid_t pid = fork();
 	if (pid == -1) {
 		perror("fork");
