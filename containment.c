@@ -36,6 +36,7 @@
 #include <sys/wait.h>
 #include "gattlib.h"
 #include "containment.h"
+#include "uuids.h"
 
 static GMainLoop *m_main_loop;
 
@@ -63,7 +64,7 @@ static void on_user_abort(int arg) {
 }
 
 static void btle_connect(const struct connection_params_t *connection_params, int comm_fd) {
-	const uuid_t heartrate_uuid = CREATE_UUID16(0x2a37);
+	const uuid_t heartrate_uuid = CREATE_UUID16(BT_CHARID_HeartRateMeasurement);
 	gatt_connection_t* connection;
 
 	while (true) {
