@@ -1,0 +1,11 @@
+[Unit]
+Description=Heartrate monitoring service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/joe/btlehrservice/btlehrservice -c 644 20:C3:8F:FF:0A:7E /var/run/heartrate.sock
+WorkingDirectory=/home/joe/btlehrservice
+
+[Install]
+WantedBy=multi-user.target
