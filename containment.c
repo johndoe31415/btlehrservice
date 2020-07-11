@@ -93,8 +93,8 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 	gattlib_register_on_disconnect(connection, disconnect_handler, connection);
 
 	int ret = gattlib_notification_start(connection, &heartrate_uuid);
-	if (ret) {
-		fprintf(stderr, "Failed to start notification.\n");
+	if (ret != GATTLIB_SUCCESS) {
+		fprintf(stderr, "Failed to start notification: error code %d\n", ret);
 		exit(EXIT_FAILURE);
 	}
 
