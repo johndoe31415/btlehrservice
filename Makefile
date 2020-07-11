@@ -1,4 +1,4 @@
-.PHONY: test pgmopts connect
+.PHONY: test pgmopts connect install
 
 CFLAGS := -O3 -std=c11 -D_POSIX_C_SOURCE=200112L -D_XOPEN_SOURCE=500
 CFLAGS += -Wall -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Werror=format -Wshadow -Wswitch -pthread
@@ -23,6 +23,12 @@ btlehrservice: $(OBJS)
 clean:
 	rm -f $(OBJS)
 	rm -f $(BINARIES)
+
+install: all
+	strip btlehrservice
+	cp btlehrservice /usr/local/bin
+	chown root:root /usr/local/bin/btlehrservice
+	chmod 755 /usr/local/bin/btlehrservice
 
 pgmopts:
 	../Python/pypgmopts/pypgmopts parser.py
