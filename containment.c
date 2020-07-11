@@ -74,6 +74,9 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 		if (write(comm_fd, &msg, sizeof(msg)) != sizeof(msg)) {
 			exit(EXIT_FAILURE);
 		}
+		if (connection_params->verbose >= 3) {
+			fprintf(stderr, "gattlib_connect(%s, random = %s)\n", connection_params->destination_address, connection_params->random_btle_address ? "true" : "false");
+		}
 		if (!connection_params->random_btle_address) {
 			connection = gattlib_connect(NULL, connection_params->destination_address, GATTLIB_CONNECTION_OPTIONS_LEGACY_DEFAULT);
 		} else {
