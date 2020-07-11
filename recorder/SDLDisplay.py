@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import cairo
 import sdl2.ext
 
 class SDLDisplay():
@@ -33,6 +34,9 @@ class SDLDisplay():
 		self._font = sdl2.ext.FontManager("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", size = 28)
 		self._sprites = sdl2.ext.SpriteFactory(renderer = self._renderer)
 
+		self._surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+		self._cctx = cairo.Context(self._surface)
+
 	def _draw_text(self, text, x, y, font_size = 24):
 		x = round(x / 16 * self._width)
 		y = round(y / 9 * self._height)
@@ -40,12 +44,20 @@ class SDLDisplay():
 		self._renderer.copy(rendered, dstrect = (x, y, rendered.size[0], rendered.size[1]))
 
 	def update(self, heartrate):
-		self._renderer.clear(sdl2.ext.Color(6, 5, 40))
+#		self._renderer.clear(sdl2.ext.Color(6, 5, 40))
 #		self._renderer.draw_point((10, 10), sdl2.ext.Color(255, 0, 0))
-		avg_heartrate = 123
-		self._draw_text("♡  %d" % (heartrate), 0.5, 0.5, font_size = 64)
-		self._draw_text("Avg  %d" % (avg_heartrate), 4.5, 0.5, font_size = 64)
-		self._renderer.draw_rect((0, 0, 121, 111), fill_color = sdl2.ext.Color(255, 255, 255))
+#		avg_heartrate = 123
+#		self._draw_text("♡  %d" % (heartrate), 0.5, 0.5, font_size = 64)
+#		self._draw_text("Avg  %d" % (avg_heartrate), 4.5, 0.5, font_size = 64)
+#		self._renderer.draw_rect((0, 0, 121, 111), color = sdl2.ext.Color(255, 255, 255))
+
+		print(self._surface.get_data())
+		rmask = 0xff << 24
+		gmask = 0xff << 16
+		bmask = 0xff << 8
+		sdl_surface = sdl2.surface.SDL_CreateRGBSurfaceFrom(self._surface.get_data(), self._width, self._height, 32, 4 * self._width, rmask, gmask, bmask, 0)
+
+		self._renderer.copy(self._surface)
 		self._renderer.present()
 
 if __name__ == "__main__":
