@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/user/local/bin/btlehrservice -c 644 20:C3:8F:FF:0A:7E /var/run/heartrate.sock
+ExecStart=/usr/local/bin/btlehrservice -c 644 20:C3:8F:FF:0A:7E /var/run/heartrate.sock
 
 [Install]
 WantedBy=multi-user.target
