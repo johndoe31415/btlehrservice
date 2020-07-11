@@ -78,12 +78,21 @@ static void containment_callback(const struct message_t *msg, void *vctx) {
 		server_ctx->hrm.have_value = false;
 		server_ctx->hrm.timestamp = 0;
 		server_ctx->hrm.last_heartrate = 0;
-	} else if ((msg->msgtype == NOTIFICATION) && (msg->data_length == 2)) {
-		server_ctx->hrm.connected = true;
-		server_ctx->hrm.have_value = (msg->data[1] != 0);
-		if (server_ctx->hrm.have_value) {
-			server_ctx->hrm.timestamp = now();
-			server_ctx->hrm.last_heartrate = msg->data[1];
+	} else if (msg->msgtype == NOTIFICATION) {
+		if (pgmopts->verbose >= 3) {
+			fprintf(stderr, "Received notification length = %2d: ", msg->data_length);
+			for (unsigned int i = 0; i < msg->data_length; i++) {
+				fprintf(stderr, "%02x ", msg->data[i]);
+			}
+			fprintf(stderr, "\n");
+		}
+		if (msg->data_length >= 2) {
+			server_ctx->hrm.connected = true;
+			server_ctx->hrm.have_value = (msg->data[1] != 0);
+			if (server_ctx->hrm.have_value) {
+				server_ctx->hrm.timestamp = now();
+				server_ctx->hrm.last_heartrate = msg->data[1];
+			}
 		}
 	}
 
