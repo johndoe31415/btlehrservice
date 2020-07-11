@@ -1,0 +1,4 @@
+{
+	"socket": 	"/var/run/heartrate.sock",
+	"logdir":	"/home/joe/heartrate_logs"
+}

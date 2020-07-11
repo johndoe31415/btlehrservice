@@ -1,0 +1,12 @@
+[Unit]
+Description=Heartrate recording service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/joe/btlehrservice/recorder/record /home/joe/btlehrservice/recorder/config.json
+User=joe
+Group=joe
+
+[Install]
+WantedBy=multi-user.target
