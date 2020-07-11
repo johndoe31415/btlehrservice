@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import cairo
+import ctypes
 import sdl2.ext
 
 class SDLDisplay():
@@ -34,8 +35,14 @@ class SDLDisplay():
 		self._font = sdl2.ext.FontManager("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", size = 28)
 		self._sprites = sdl2.ext.SpriteFactory(renderer = self._renderer)
 
-		self._surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+		self._surface_data = (ctypes.c_ubyte * (width * height * 4))()
+		self._surface = cairo.ImageSurface.create_for_data(self._surface_data, cairo.FORMAT_ARGB32, width, height, width * 4)
 		self._cctx = cairo.Context(self._surface)
+
+#		self._cctx.set_source_rgb(1, 0.5, 0.5)
+#		self._cctx.rectangle(0, 0, 100, 100)
+#		self._cctx.fill()
+#		self._surface.write_to_png("x.png")
 
 	def _draw_text(self, text, x, y, font_size = 24):
 		x = round(x / 16 * self._width)
@@ -51,13 +58,16 @@ class SDLDisplay():
 #		self._draw_text("Avg  %d" % (avg_heartrate), 4.5, 0.5, font_size = 64)
 #		self._renderer.draw_rect((0, 0, 121, 111), color = sdl2.ext.Color(255, 255, 255))
 
-		print(self._surface.get_data())
+#		print(self._surface.get_data())
 		rmask = 0xff << 24
 		gmask = 0xff << 16
 		bmask = 0xff << 8
-		sdl_surface = sdl2.surface.SDL_CreateRGBSurfaceFrom(self._surface.get_data(), self._width, self._height, 32, 4 * self._width, rmask, gmask, bmask, 0)
+		sdl_surface = sdl2.surface.SDL_CreateRGBSurfaceFrom(self._surface_data, self._width, self._height, 32, 4 * self._width, rmask, gmask, bmask, 0)
+		texture = sdl2.SDL_CreateTextureFromSurface(self._renderer.renderer, sdl_surface)
 
-		self._renderer.copy(self._surface)
+		sdl2.SDL_RenderCopy(self._renderer.renderer, texture, None, None)
+		sdl2.SDL_DestroyTexture(texture)
+		sdl2.SDL_FreeSurface(sdl_surface)
 		self._renderer.present()
 
 if __name__ == "__main__":
