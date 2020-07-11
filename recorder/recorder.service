@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/joe/btlehrservice/recorder/record /home/joe/btlehrservice/recorder/config.json
+ExecStart=/home/joe/btlehrservice/recorder/heartrate_record /home/joe/btlehrservice/recorder/config.json
 User=joe
 Group=joe
 

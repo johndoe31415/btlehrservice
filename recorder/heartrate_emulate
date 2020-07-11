@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+#	btlehrservice - Bluetooth-Low-Energy heart rate service
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of btlehrservice.
+#
+#	btlehrservice is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	btlehrservice is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with btlehrservice; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import os
+import socket
+import contextlib
+import json
+import threading
+import time
+
+class Emulator():
+	def __init__(self, config):
+		self._config = config
+		with contextlib.suppress(FileNotFoundError):
+			os.unlink(self._config["socket"])
+		self._sock = None
+		self._quit = False
+		self._data = self._read_emu_data()
+
+	def _read_emu_data(self):
+		emu_data = [ ]
+		t0 = None
+		with open("emu_data.txt") as f:
+			for line in f:
+				data_point = json.loads(line)
+				if data_point.get("have_value"):
+					(x, y) = (data_point["ts"], data_point["last_value"])
+					if t0 is None:
+						t0 = x
+					x -= t0
+					emu_data.append((x, y))
+		return emu_data
+
+	@staticmethod
+	def _wait_until(t):
+		delay = t - time.time()
+		if delay > 1:
+			time.sleep(1)
+			return False
+		elif delay > 0:
+			time.sleep(delay)
+			return True
+		else:
+			return True
+
+	def _do_handle_client(self, conn):
+		while not self._quit:
+			t0 = time.time()
+			for (x, y) in self._data:
+				x = t0 + x
+
+				while True:
+					wait_result = self._wait_until(x)
+					if not wait_result:
+						send_data = { "connected": False }
+					else:
+						send_data = { "connected": True, "have_value": True, "ts": time.time(), "last_value": y }
+					send_data = (json.dumps(send_data) + "\n").encode()
+					conn.send(send_data)
+					if wait_result:
+						break
+
+	def _handle_client(self, conn):
+		try:
+			self._do_handle_client(conn)
+		except BrokenPipeError:
+			pass
+
+	def _wait_for_clients(self):
+		while True:
+			(conn, peer) = self._sock.accept()
+			threading.Thread(target = self._handle_client, args = (conn, )).start()
+
+	def run(self):
+		try:
+			self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+			self._sock.bind(self._config["socket"])
+			self._sock.listen(10)
+			self._wait_for_clients()
+		finally:
+			os.unlink(self._config["socket"])
+			self._quit = True
+
+
+with open("config_dev.json") as f:
+	config = json.load(f)
+
+emu = Emulator(config)
+emu.run()
+
+
+

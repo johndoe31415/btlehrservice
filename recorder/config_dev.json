@@ -1,0 +1,4 @@
+{
+	"socket": 	"heartrate-emu.sock",
+	"logdir":	"/tmp/templogs"
+}
