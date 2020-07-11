@@ -72,10 +72,11 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 			.msgtype = ATTEMPT_CONNECTION,
 		};
 		if (write(comm_fd, &msg, sizeof(msg)) != sizeof(msg)) {
+			fprintf(stderr, "containment: short write to controller, terminating.\n");
 			exit(EXIT_FAILURE);
 		}
 		if (connection_params->verbose >= 3) {
-			fprintf(stderr, "gattlib_connect(%s, random = %s)\n", connection_params->destination_address, connection_params->random_btle_address ? "true" : "false");
+			fprintf(stderr, "containment: gattlib_connect(%s, random = %s)\n", connection_params->destination_address, connection_params->random_btle_address ? "true" : "false");
 		}
 		if (!connection_params->random_btle_address) {
 			connection = gattlib_connect(NULL, connection_params->destination_address, GATTLIB_CONNECTION_OPTIONS_LEGACY_DEFAULT);
@@ -89,12 +90,16 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 		}
 	}
 
+	if (connection_params->verbose >= 3) {
+		fprintf(stderr, "containment: Connection successfully established: %p\n", connection);
+	}
+
 	gattlib_register_notification(connection, notification_handler, &comm_fd);
 	gattlib_register_on_disconnect(connection, disconnect_handler, connection);
 
 	int ret = gattlib_notification_start(connection, &heartrate_uuid);
 	if (ret != GATTLIB_SUCCESS) {
-		fprintf(stderr, "Failed to start notification: error code %d\n", ret);
+		fprintf(stderr, "containment: failed to start notification: error code %d\n", ret);
 		exit(EXIT_FAILURE);
 	}
 
@@ -103,6 +108,10 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 
 	m_main_loop = g_main_loop_new(NULL, 0);
 	g_main_loop_run(m_main_loop);
+
+	if (connection_params->verbose >= 3) {
+		fprintf(stderr, "containment: g_main_loop exited.");
+	}
 
 	gattlib_notification_stop(connection, &heartrate_uuid);
 	gattlib_disconnect(connection);
