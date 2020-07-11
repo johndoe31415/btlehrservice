@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2020-07-11 16:48:06
+ *   Generated at: 2020-07-11 16:52:59
  */
 
 #include <stdint.h>
@@ -21,13 +21,19 @@
 static enum argparse_option_t last_parsed_option;
 static char last_error_message[256];
 static const char *option_texts[] = {
+	[ARG_USER] = "-u / --user",
+	[ARG_CHOWN] = "-c / --chown",
 	[ARG_DESTINATION_ADDRESS] = "destination_address",
 	[ARG_UNIX_SOCKET] = "unix_socket",
 };
 
 enum argparse_option_internal_t {
-	ARG_DESTINATION_ADDRESS_LONG = 1000,
-	ARG_UNIX_SOCKET_LONG = 1001,
+	ARG_USER_SHORT = 'u',
+	ARG_CHOWN_SHORT = 'c',
+	ARG_USER_LONG = 1000,
+	ARG_CHOWN_LONG = 1001,
+	ARG_DESTINATION_ADDRESS_LONG = 1002,
+	ARG_UNIX_SOCKET_LONG = 1003,
 };
 
 static void errmsg_callback(const char *errmsg, ...) {
@@ -48,8 +54,10 @@ static void errmsg_option_callback(enum argparse_option_t error_option, const ch
 
 bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
 	last_parsed_option = ARGPARSE_NO_OPTION;
-	const char *short_options = "";
+	const char *short_options = "u:c:";
 	struct option long_options[] = {
+		{ "user",                             required_argument, 0, ARG_USER_LONG },
+		{ "chown",                            required_argument, 0, ARG_CHOWN_LONG },
 		{ "destination_address",              required_argument, 0, ARG_DESTINATION_ADDRESS_LONG },
 		{ "unix_socket",                      required_argument, 0, ARG_UNIX_SOCKET_LONG },
 		{ 0 }
@@ -63,6 +71,22 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 		last_error_message[0] = 0;
 		enum argparse_option_internal_t arg = (enum argparse_option_internal_t)optval;
 		switch (arg) {
+			case ARG_USER_SHORT:
+			case ARG_USER_LONG:
+				last_parsed_option = ARG_USER;
+				if (!argument_callback(ARG_USER, optarg, errmsg_callback)) {
+					return false;
+				}
+				break;
+
+			case ARG_CHOWN_SHORT:
+			case ARG_CHOWN_LONG:
+				last_parsed_option = ARG_CHOWN;
+				if (!argument_callback(ARG_CHOWN, optarg, errmsg_callback)) {
+					return false;
+				}
+				break;
+
 			default:
 				last_parsed_option = ARGPARSE_NO_OPTION;
 				errmsg_callback("unrecognized option supplied");
@@ -96,14 +120,23 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 }
 
 void argparse_show_syntax(void) {
-	fprintf(stderr, "usage: btlehrservice dest_mac_address socket\n");
+	fprintf(stderr, "usage: btlehrservice [-u username] [-c oct_permissions]\n");
+	fprintf(stderr, "                     dest_mac_address socket\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Bluetooth Low Energy Heart Rate service.\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "positional arguments:\n");
-	fprintf(stderr, "  dest_mac_address  BTLE MAC address of the device that the btlehrservice\n");
-	fprintf(stderr, "                    should try to connect to.\n");
-	fprintf(stderr, "  socket            UNIX socket that the btlehrservice listens on.\n");
+	fprintf(stderr, "  dest_mac_address      BTLE MAC address of the device that the btlehrservice\n");
+	fprintf(stderr, "                        should try to connect to.\n");
+	fprintf(stderr, "  socket                UNIX socket that the btlehrservice listens on.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "optional arguments:\n");
+	fprintf(stderr, "  -u username, --user username\n");
+	fprintf(stderr, "                        Change the username of the unix_socket to this user\n");
+	fprintf(stderr, "                        after it has been bound.\n");
+	fprintf(stderr, "  -c oct_permissions, --chown oct_permissions\n");
+	fprintf(stderr, "                        Change permissions of the unix_socket to this octal\n");
+	fprintf(stderr, "                        permission value after it has been bound.\n");
 }
 
 void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
@@ -128,6 +161,8 @@ void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_
 
 static const char *option_enum_to_str(enum argparse_option_t option) {
 	switch (option) {
+		case ARG_USER: return "ARG_USER";
+		case ARG_CHOWN: return "ARG_CHOWN";
 		case ARG_DESTINATION_ADDRESS: return "ARG_DESTINATION_ADDRESS";
 		case ARG_UNIX_SOCKET: return "ARG_UNIX_SOCKET";
 	}

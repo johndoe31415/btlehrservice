@@ -17,14 +17,23 @@ thing off entirely and retries.
 It's quite simple, there's not many arguments right now:
 
 ```
-usage: btlehrservice dest_mac_address socket
+usage: btlehrservice [-u username] [-c oct_permissions]
+                     dest_mac_address socket
 
 Bluetooth Low Energy Heart Rate service.
 
 positional arguments:
-  dest_mac_address  BTLE MAC address of the device that the btlehrservice
-                    should try to connect to.
-  socket            UNIX socket that the btlehrservice listens on.
+  dest_mac_address      BTLE MAC address of the device that the btlehrservice
+                        should try to connect to.
+  socket                UNIX socket that the btlehrservice listens on.
+
+optional arguments:
+  -u username, --user username
+                        Change the username of the unix_socket to this user
+                        after it has been bound.
+  -c oct_permissions, --chown oct_permissions
+                        Change permissions of the unix_socket to this octal
+                        permission value after it has been bound.
 ```
 
 For example:

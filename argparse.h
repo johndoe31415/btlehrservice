@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2020-07-11 16:48:06
+ *   Generated at: 2020-07-11 16:52:59
  */
 
 #ifndef __ARGPARSE_H__
@@ -18,8 +18,10 @@
 #define ARGPARSE_POSITIONAL_ARG	1
 
 enum argparse_option_t {
-	ARG_DESTINATION_ADDRESS = 2,
-	ARG_UNIX_SOCKET = 3,
+	ARG_USER = 2,
+	ARG_CHOWN = 3,
+	ARG_DESTINATION_ADDRESS = 4,
+	ARG_UNIX_SOCKET = 5,
 };
 
 typedef void (*argparse_errmsg_callback_t)(const char *errmsg, ...);

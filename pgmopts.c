@@ -24,16 +24,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "pgmopts.h"
 #include "argparse.h"
 
 static struct pgmopts_t pgmopts_rw = {
-	0
+	.socket_permissions = -1,
 };
 const struct pgmopts_t *pgmopts = &pgmopts_rw;
 
 static bool argument_callback(enum argparse_option_t option, const char *value, argparse_errmsg_callback_t errmsg_callback) {
 	switch (option) {
+		case ARG_USER:
+			pgmopts_rw.socket_username = value;
+			break;
+
+		case ARG_CHOWN:
+			pgmopts_rw.socket_permissions = strtol(value, NULL, 8);
+			break;
+
 		case ARG_DESTINATION_ADDRESS:
 			strncpy(pgmopts_rw.dest_mac_address, value, sizeof(pgmopts_rw.dest_mac_address) - 1);
 			break;

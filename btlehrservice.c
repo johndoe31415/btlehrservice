@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <pwd.h>
 #include <pthread.h>
 #include "containment.h"
 #include "pgmopts.h"
@@ -117,6 +119,37 @@ static void* btle_thread_fnc(void *vctx) {
 	return NULL;
 }
 
+static bool change_socket_user(const char *filename, const char *username) {
+	if (username == NULL) {
+		return true;
+	}
+
+	struct passwd *user = getpwnam(username);
+	if (!user) {
+		perror("getpwnam");
+		return false;
+	}
+
+	if (chown(filename, user->pw_uid, user->pw_gid)) {
+		perror("chown");
+		return false;
+	}
+	return true;
+}
+
+static bool change_socket_permissions(const char *filename, int permissions) {
+	if (permissions == -1) {
+		return true;
+	}
+
+	if (chmod(filename, permissions)) {
+		perror("chmod");
+		return false;
+	}
+
+	return true;
+}
+
 static bool server_listening_loop(struct server_ctx_t *server_ctx) {
 	int sd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sd == -1) {
@@ -138,6 +171,15 @@ static bool server_listening_loop(struct server_ctx_t *server_ctx) {
 	if (listen(sd, 5) == -1) {
 		perror("listen");
 		close(sd);
+		return false;
+	}
+
+	if (!change_socket_user(pgmopts->socket, pgmopts->socket_username)) {
+		fprintf(stderr, "Chaning user of socket %s to user %s failed.", pgmopts->socket, pgmopts->socket_username);
+		return false;
+	}
+	if (!change_socket_permissions(pgmopts->socket, pgmopts->socket_permissions)) {
+		fprintf(stderr, "Chaning permissions of socket %s to 0o%o failed.", pgmopts->socket, pgmopts->socket_permissions);
 		return false;
 	}
 

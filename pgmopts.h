@@ -25,6 +25,8 @@
 #define __PGMOPTS_H__
 
 struct pgmopts_t {
+	const char *socket_username;
+	int socket_permissions;
 	char dest_mac_address[32];
 	const char *socket;
 };
