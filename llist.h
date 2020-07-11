@@ -39,6 +39,7 @@ struct llist_element_t {
 struct llist_t {
 	pthread_mutex_t mutex;
 	struct llist_element_t *head;
+	struct llist_element_t *tail;
 	unsigned int elements;
 };
 
@@ -55,6 +56,7 @@ void llist_remove_element_nolock(struct llist_element_t *element);
 void llist_remove_element(struct llist_element_t *element);
 void llist_traverse(struct llist_t *list, ll_element_callback_t callback, void *ctx);
 struct llist_element_t *llist_append(struct llist_t *list, void *new_payload, bool free_with_list);
+void* llist_pop(struct llist_t *list);
 struct llist_element_t *llist_append_alloc(struct llist_t *list, void *new_payload, unsigned int payload_size);
 void llist_free(struct llist_t *list);
 /***************  AUTO GENERATED SECTION ENDS   ***************/

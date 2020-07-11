@@ -53,6 +53,9 @@ void llist_remove_element_nolock(struct llist_element_t *element) {
 	if (list->head == element) {
 		list->head = element->next;
 	}
+	if (list->tail == element) {
+		list->tail = element->prev;
+	}
 	llist_free_element(element);
 }
 
@@ -82,19 +85,33 @@ struct llist_element_t *llist_append(struct llist_t *list, void *new_payload, bo
 
 	element->list = list;
 	element->payload = new_payload;
-	element->prev = NULL;
+	element->next = NULL;
 	element->free_payload_with_list = free_with_list;
 
 	llist_lock(list);
+	element->prev = list->tail;
 	if (list->head) {
-		list->head->prev = element;
+		list->tail->next = element;
+	} else {
+		list->head = element;
 	}
-	element->next = list->head;
-	list->head = element;
+	list->tail = element;
 	list->elements++;
 	llist_unlock(list);
 
 	return element;
+}
+
+void* llist_pop(struct llist_t *list) {
+	void *result = NULL;
+	llist_lock(list);
+	if (list->head) {
+		result = list->head->payload;
+		list->head->free_payload_with_list = false;
+		llist_remove_element_nolock(list->head);
+	}
+	llist_unlock(list);
+	return result;
 }
 
 struct llist_element_t *llist_append_alloc(struct llist_t *list, void *new_payload, unsigned int payload_size) {
@@ -141,12 +158,16 @@ static void ll_remove_callback(struct llist_element_t *element, void *ctx) {
 static void llist_validate(struct llist_t *list) {
 	if (list->elements == 0) {
 		assert(list->head == NULL);
+		assert(list->tail == NULL);
 	} else {
 		assert(list->head != NULL);
+		assert(list->tail != NULL);
 		assert(list->head->prev == NULL);
 		struct llist_element_t *cur = list->head;
+		struct llist_element_t *last = NULL;
 		unsigned int counted_elements = 0;
 		while (cur) {
+			last = cur;
 			counted_elements++;
 			if (cur->prev) {
 				assert(cur->prev->next == cur);
@@ -157,11 +178,12 @@ static void llist_validate(struct llist_t *list) {
 			cur = cur->next;
 		}
 		assert(counted_elements == list->elements);
+		assert(last == list->tail);
 	}
 }
 
 static void llist_dump(struct llist_t *list) {
-	fprintf(stderr, "List %d elements head %p:\n", list->elements, list->head);
+	fprintf(stderr, "List %d elements head %p / tail %p:\n", list->elements, list->head, list->tail);
 	struct llist_element_t *cur = list->head;
 	while (cur) {
 		fprintf(stderr, "[%16p] <- %p -> [%16p]\n", cur->prev, cur, cur->next);
@@ -198,6 +220,26 @@ int main(void) {
 	llist_traverse(&list, ll_remove_callback, NULL);
 	llist_dump(&list);
 
+	llist_append_alloc(&list, "Eins", 5);
+	llist_append_alloc(&list, "Zwei", 5);
+	llist_dump(&list);
+
+	void *payload = llist_pop(&list);
+	printf("Eins = '%s'\n", (const char*)payload);
+	free(payload);
+	llist_dump(&list);
+
+	payload = llist_pop(&list);
+	printf("Zwei = '%s'\n", (const char*)payload);
+	free(payload);
+	llist_dump(&list);
+
+	payload = llist_pop(&list);
+	assert(payload == NULL);
+	llist_dump(&list);
+
+
+	llist_append_alloc(&list, "LAST", 5);
 	llist_free(&list);
 	return 0;
 }
