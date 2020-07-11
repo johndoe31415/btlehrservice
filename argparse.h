@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2019-09-29 10:03:18
+ *   Generated at: 2020-07-11 16:48:06
  */
 
 #ifndef __ARGPARSE_H__
@@ -15,10 +15,11 @@
 
 
 #define ARGPARSE_NO_OPTION		0
+#define ARGPARSE_POSITIONAL_ARG	1
 
 enum argparse_option_t {
-	ARG_DESTINATION_ADDRESS = 1,
-	ARG_UNIX_SOCKET = 2,
+	ARG_DESTINATION_ADDRESS = 2,
+	ARG_UNIX_SOCKET = 3,
 };
 
 typedef void (*argparse_errmsg_callback_t)(const char *errmsg, ...);
@@ -29,7 +30,5 @@ typedef bool (*argparse_plausibilization_callback_t)(argparse_errmsg_option_call
 bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback);
 void argparse_show_syntax(void);
 void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback);
-
-bool argparse_argument_one_of_choices(const char *value, const char **value_list);
 
 #endif

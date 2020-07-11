@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2019-09-29 10:03:18
+ *   Generated at: 2020-07-11 16:48:06
  */
 
 #include <stdint.h>
@@ -71,12 +71,9 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 	}
 
 	const int positional_argument_cnt = argc - optind;
-	if (positional_argument_cnt < 2) {
-		errmsg_callback("expected a minimum of 2 positional arguments, %d given.", positional_argument_cnt);
-		return false;
-	}
-	if (positional_argument_cnt > 2) {
-		errmsg_callback("expected a maximum of 2 positional arguments, %d given.", positional_argument_cnt);
+	last_parsed_option = ARGPARSE_POSITIONAL_ARG;
+	if (positional_argument_cnt != 2) {
+		errmsg_callback("expected exactly 2 positional arguments, but %d given.", positional_argument_cnt);
 		return false;
 	}
 
@@ -111,27 +108,18 @@ void argparse_show_syntax(void) {
 
 void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
 	if (!argparse_parse(argc, argv, argument_callback, plausibilization_callback)) {
-		if (last_parsed_option != ARGPARSE_NO_OPTION) {
+		if (last_parsed_option > ARGPARSE_POSITIONAL_ARG) {
 			if (last_error_message[0]) {
-				fprintf(stderr, "%s: error parsing argument %s -- %s\n", argv[0], option_texts[last_parsed_option], last_error_message);
+				fprintf(stderr, "btlehrservice: error parsing argument %s -- %s\n", option_texts[last_parsed_option], last_error_message);
 			} else {
-				fprintf(stderr, "%s: error parsing argument %s -- no details available\n", argv[0], option_texts[last_parsed_option]);
+				fprintf(stderr, "btlehrservice: error parsing argument %s -- no details available\n", option_texts[last_parsed_option]);
 			}
+		} else if (last_parsed_option == ARGPARSE_POSITIONAL_ARG) {
+			fprintf(stderr, "btlehrservice: error parsing optional arguments -- %s\n", last_error_message);
 		}
 		argparse_show_syntax();
 		exit(EXIT_FAILURE);
 	}
-}
-
-bool argparse_argument_one_of_choices(const char *value, const char **value_list) {
-	while (*value_list) {
-		if (!strcmp(*value_list, value)) {
-			return true;
-		}
-		value_list++;
-	}
-	errmsg_callback("'%s' is not a valid choice for this option", value);
-	return false;
 }
 
 #ifdef __ARGPARSE_MAIN__
