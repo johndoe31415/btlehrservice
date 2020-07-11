@@ -25,6 +25,7 @@
 #define __PGMOPTS_H__
 
 struct pgmopts_t {
+	int verbose;
 	const char *socket_username;
 	int socket_permissions;
 	bool random_btle_address;

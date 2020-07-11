@@ -231,6 +231,7 @@ int main(int argc, char **argv) {
 	struct server_ctx_t server_ctx = {
 		.running = true,
 		.connection = {
+			.verbose = pgmopts->verbose,
 			.random_btle_address = pgmopts->random_btle_address,
 			.destination_address = pgmopts->dest_mac_address,
 		},

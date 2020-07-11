@@ -47,6 +47,10 @@ static bool argument_callback(enum argparse_option_t option, const char *value, 
 			pgmopts_rw.random_btle_address = true;
 			break;
 
+		case ARG_VERBOSE:
+			pgmopts_rw.verbose++;
+			break;
+
 		case ARG_DESTINATION_ADDRESS:
 			strncpy(pgmopts_rw.dest_mac_address, value, sizeof(pgmopts_rw.dest_mac_address) - 1);
 			break;

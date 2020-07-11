@@ -184,8 +184,10 @@ bool contained_connect(const struct connection_params_t *connection_params, cont
 
 		/* Make the containment silent (lots of DBus messages spamming the
 		 * console otherwise) */
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
+		if (connection_params->verbose < 2) {
+			close(STDOUT_FILENO);
+			close(STDERR_FILENO);
+		}
 
 		btle_connect(connection_params, pipe_write_fd);
 		exit(EXIT_SUCCESS);

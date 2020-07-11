@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2020-07-11 17:23:02
+ *   Generated at: 2020-07-11 17:33:03
  */
 
 #include <stdint.h>
@@ -24,6 +24,7 @@ static const char *option_texts[] = {
 	[ARG_RANDOM_BTLE_ADDRESS] = "-r / --random-btle-address",
 	[ARG_USER] = "-u / --user",
 	[ARG_CHOWN] = "-c / --chown",
+	[ARG_VERBOSE] = "-v / --verbose",
 	[ARG_DESTINATION_ADDRESS] = "destination_address",
 	[ARG_UNIX_SOCKET] = "unix_socket",
 };
@@ -32,11 +33,13 @@ enum argparse_option_internal_t {
 	ARG_RANDOM_BTLE_ADDRESS_SHORT = 'r',
 	ARG_USER_SHORT = 'u',
 	ARG_CHOWN_SHORT = 'c',
+	ARG_VERBOSE_SHORT = 'v',
 	ARG_RANDOM_BTLE_ADDRESS_LONG = 1000,
 	ARG_USER_LONG = 1001,
 	ARG_CHOWN_LONG = 1002,
-	ARG_DESTINATION_ADDRESS_LONG = 1003,
-	ARG_UNIX_SOCKET_LONG = 1004,
+	ARG_VERBOSE_LONG = 1003,
+	ARG_DESTINATION_ADDRESS_LONG = 1004,
+	ARG_UNIX_SOCKET_LONG = 1005,
 };
 
 static void errmsg_callback(const char *errmsg, ...) {
@@ -57,11 +60,12 @@ static void errmsg_option_callback(enum argparse_option_t error_option, const ch
 
 bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
 	last_parsed_option = ARGPARSE_NO_OPTION;
-	const char *short_options = "ru:c:";
+	const char *short_options = "ru:c:v";
 	struct option long_options[] = {
 		{ "random-btle-address",              no_argument, 0, ARG_RANDOM_BTLE_ADDRESS_LONG },
 		{ "user",                             required_argument, 0, ARG_USER_LONG },
 		{ "chown",                            required_argument, 0, ARG_CHOWN_LONG },
+		{ "verbose",                          no_argument, 0, ARG_VERBOSE_LONG },
 		{ "destination_address",              required_argument, 0, ARG_DESTINATION_ADDRESS_LONG },
 		{ "unix_socket",                      required_argument, 0, ARG_UNIX_SOCKET_LONG },
 		{ 0 }
@@ -99,6 +103,14 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 				}
 				break;
 
+			case ARG_VERBOSE_SHORT:
+			case ARG_VERBOSE_LONG:
+				last_parsed_option = ARG_VERBOSE;
+				if (!argument_callback(ARG_VERBOSE, optarg, errmsg_callback)) {
+					return false;
+				}
+				break;
+
 			default:
 				last_parsed_option = ARGPARSE_NO_OPTION;
 				errmsg_callback("unrecognized option supplied");
@@ -132,7 +144,7 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 }
 
 void argparse_show_syntax(void) {
-	fprintf(stderr, "usage: btlehrservice [-r] [-u username] [-c oct_permissions]\n");
+	fprintf(stderr, "usage: btlehrservice [-r] [-u username] [-c oct_permissions] [-v]\n");
 	fprintf(stderr, "                     dest_mac_address socket\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Bluetooth Low Energy Heart Rate service.\n");
@@ -152,6 +164,7 @@ void argparse_show_syntax(void) {
 	fprintf(stderr, "  -c oct_permissions, --chown oct_permissions\n");
 	fprintf(stderr, "                        Change permissions of the unix_socket to this octal\n");
 	fprintf(stderr, "                        permission value after it has been bound.\n");
+	fprintf(stderr, "  -v, --verbose         Increase verbosity. Can be specified multiple times.\n");
 }
 
 void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
@@ -179,6 +192,7 @@ static const char *option_enum_to_str(enum argparse_option_t option) {
 		case ARG_RANDOM_BTLE_ADDRESS: return "ARG_RANDOM_BTLE_ADDRESS";
 		case ARG_USER: return "ARG_USER";
 		case ARG_CHOWN: return "ARG_CHOWN";
+		case ARG_VERBOSE: return "ARG_VERBOSE";
 		case ARG_DESTINATION_ADDRESS: return "ARG_DESTINATION_ADDRESS";
 		case ARG_UNIX_SOCKET: return "ARG_UNIX_SOCKET";
 	}

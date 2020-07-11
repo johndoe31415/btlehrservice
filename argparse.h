@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2020-07-11 17:23:02
+ *   Generated at: 2020-07-11 17:33:03
  */
 
 #ifndef __ARGPARSE_H__
@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 
+#define ARGPARSE_DEFAULT_VERBOSE		0
 
 #define ARGPARSE_NO_OPTION		0
 #define ARGPARSE_POSITIONAL_ARG	1
@@ -21,8 +22,9 @@ enum argparse_option_t {
 	ARG_RANDOM_BTLE_ADDRESS = 2,
 	ARG_USER = 3,
 	ARG_CHOWN = 4,
-	ARG_DESTINATION_ADDRESS = 5,
-	ARG_UNIX_SOCKET = 6,
+	ARG_VERBOSE = 5,
+	ARG_DESTINATION_ADDRESS = 6,
+	ARG_UNIX_SOCKET = 7,
 };
 
 typedef void (*argparse_errmsg_callback_t)(const char *errmsg, ...);
