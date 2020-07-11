@@ -155,8 +155,8 @@
 #define BT_CHARID_LocationName										0x2ab5	// org.bluetooth.characteristic.location_name
 #define BT_CHARID_Longitude											0x2aaf	// org.bluetooth.characteristic.Longitude
 #define BT_CHARID_MagneticDeclination								0x2a2c	// org.bluetooth.characteristic.magnetic_declination
-#define BT_CHARID_MagneticFluxDensity–2D							0x2aa0	// org.bluetooth.characteristic.Magnetic_flux_density_2D
-#define BT_CHARID_MagneticFluxDensity–3D							0x2aa1	// org.bluetooth.characteristic.Magnetic_flux_density_3D
+#define BT_CHARID_MagneticFluxDensity_2D							0x2aa0	// org.bluetooth.characteristic.Magnetic_flux_density_2D
+#define BT_CHARID_MagneticFluxDensity_3D							0x2aa1	// org.bluetooth.characteristic.Magnetic_flux_density_3D
 #define BT_CHARID_ManufacturerNameString							0x2a29	// org.bluetooth.characteristic.manufacturer_name_string
 #define BT_CHARID_MaximumRecommendedHeartRate						0x2a91	// org.bluetooth.characteristic.maximum_recommended_heart_rate
 #define BT_CHARID_MeasurementInterval								0x2a21	// org.bluetooth.characteristic.measurement_interval
