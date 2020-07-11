@@ -17,7 +17,7 @@ thing off entirely and retries.
 It's quite simple, there's not many arguments right now:
 
 ```
-usage: btlehrservice [-u username] [-c oct_permissions]
+usage: btlehrservice [-r] [-u username] [-c oct_permissions]
                      dest_mac_address socket
 
 Bluetooth Low Energy Heart Rate service.
@@ -28,6 +28,9 @@ positional arguments:
   socket                UNIX socket that the btlehrservice listens on.
 
 optional arguments:
+  -r, --random-btle-address
+                        Use a random BTLE address. Some heartrate monitors
+                        (e.g., Polar H9) seem to require this.
   -u username, --user username
                         Change the username of the unix_socket to this user
                         after it has been bound.
@@ -39,7 +42,7 @@ optional arguments:
 For example:
 
 ```
-$ ./btlehrservice 20:C3:8F:FF:0A:7E heartrate_socket
+$ ./btlehrservice -r 20:C3:8F:FF:0A:7E heartrate_socket
 ```
 
 This opens a "heartrate_socket" UNIX socket that gives linewise JSON data when

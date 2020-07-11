@@ -27,6 +27,7 @@
 struct pgmopts_t {
 	const char *socket_username;
 	int socket_permissions;
+	bool random_btle_address;
 	char dest_mac_address[32];
 	const char *socket;
 };

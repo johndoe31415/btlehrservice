@@ -36,6 +36,7 @@ struct message_t {
 };
 
 struct connection_params_t {
+	bool random_btle_address;
 	const char *destination_address;
 	unsigned int connect_failed_retry_secs;
 	unsigned int child_process_timeout_secs;

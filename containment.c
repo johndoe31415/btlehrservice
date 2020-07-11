@@ -74,7 +74,11 @@ static void btle_connect(const struct connection_params_t *connection_params, in
 		if (write(comm_fd, &msg, sizeof(msg)) != sizeof(msg)) {
 			exit(EXIT_FAILURE);
 		}
-		connection = gattlib_connect(NULL, connection_params->destination_address, GATTLIB_CONNECTION_OPTIONS_LEGACY_DEFAULT);
+		if (!connection_params->random_btle_address) {
+			connection = gattlib_connect(NULL, connection_params->destination_address, GATTLIB_CONNECTION_OPTIONS_LEGACY_DEFAULT);
+		} else {
+			connection = gattlib_connect(NULL, connection_params->destination_address, GATTLIB_CONNECTION_OPTIONS_LEGACY_BDADDR_LE_RANDOM | GATTLIB_CONNECTION_OPTIONS_LEGACY_BT_SEC_LOW);
+		}
 		if (connection == NULL) {
 			sleep(connection_params->connect_failed_retry_secs ? connection_params->connect_failed_retry_secs : 1);
 		} else {

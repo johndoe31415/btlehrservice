@@ -5,7 +5,7 @@
  *
  *   Do not edit it by hand, your changes will be overwritten.
  *
- *   Generated at: 2020-07-11 16:52:59
+ *   Generated at: 2020-07-11 17:23:02
  */
 
 #include <stdint.h>
@@ -21,6 +21,7 @@
 static enum argparse_option_t last_parsed_option;
 static char last_error_message[256];
 static const char *option_texts[] = {
+	[ARG_RANDOM_BTLE_ADDRESS] = "-r / --random-btle-address",
 	[ARG_USER] = "-u / --user",
 	[ARG_CHOWN] = "-c / --chown",
 	[ARG_DESTINATION_ADDRESS] = "destination_address",
@@ -28,12 +29,14 @@ static const char *option_texts[] = {
 };
 
 enum argparse_option_internal_t {
+	ARG_RANDOM_BTLE_ADDRESS_SHORT = 'r',
 	ARG_USER_SHORT = 'u',
 	ARG_CHOWN_SHORT = 'c',
-	ARG_USER_LONG = 1000,
-	ARG_CHOWN_LONG = 1001,
-	ARG_DESTINATION_ADDRESS_LONG = 1002,
-	ARG_UNIX_SOCKET_LONG = 1003,
+	ARG_RANDOM_BTLE_ADDRESS_LONG = 1000,
+	ARG_USER_LONG = 1001,
+	ARG_CHOWN_LONG = 1002,
+	ARG_DESTINATION_ADDRESS_LONG = 1003,
+	ARG_UNIX_SOCKET_LONG = 1004,
 };
 
 static void errmsg_callback(const char *errmsg, ...) {
@@ -54,8 +57,9 @@ static void errmsg_option_callback(enum argparse_option_t error_option, const ch
 
 bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback, argparse_plausibilization_callback_t plausibilization_callback) {
 	last_parsed_option = ARGPARSE_NO_OPTION;
-	const char *short_options = "u:c:";
+	const char *short_options = "ru:c:";
 	struct option long_options[] = {
+		{ "random-btle-address",              no_argument, 0, ARG_RANDOM_BTLE_ADDRESS_LONG },
 		{ "user",                             required_argument, 0, ARG_USER_LONG },
 		{ "chown",                            required_argument, 0, ARG_CHOWN_LONG },
 		{ "destination_address",              required_argument, 0, ARG_DESTINATION_ADDRESS_LONG },
@@ -71,6 +75,14 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 		last_error_message[0] = 0;
 		enum argparse_option_internal_t arg = (enum argparse_option_internal_t)optval;
 		switch (arg) {
+			case ARG_RANDOM_BTLE_ADDRESS_SHORT:
+			case ARG_RANDOM_BTLE_ADDRESS_LONG:
+				last_parsed_option = ARG_RANDOM_BTLE_ADDRESS;
+				if (!argument_callback(ARG_RANDOM_BTLE_ADDRESS, optarg, errmsg_callback)) {
+					return false;
+				}
+				break;
+
 			case ARG_USER_SHORT:
 			case ARG_USER_LONG:
 				last_parsed_option = ARG_USER;
@@ -120,7 +132,7 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 }
 
 void argparse_show_syntax(void) {
-	fprintf(stderr, "usage: btlehrservice [-u username] [-c oct_permissions]\n");
+	fprintf(stderr, "usage: btlehrservice [-r] [-u username] [-c oct_permissions]\n");
 	fprintf(stderr, "                     dest_mac_address socket\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Bluetooth Low Energy Heart Rate service.\n");
@@ -131,6 +143,9 @@ void argparse_show_syntax(void) {
 	fprintf(stderr, "  socket                UNIX socket that the btlehrservice listens on.\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "optional arguments:\n");
+	fprintf(stderr, "  -r, --random-btle-address\n");
+	fprintf(stderr, "                        Use a random BTLE address. Some heartrate monitors\n");
+	fprintf(stderr, "                        (e.g., Polar H9) seem to require this.\n");
 	fprintf(stderr, "  -u username, --user username\n");
 	fprintf(stderr, "                        Change the username of the unix_socket to this user\n");
 	fprintf(stderr, "                        after it has been bound.\n");
@@ -161,6 +176,7 @@ void argparse_parse_or_quit(int argc, char **argv, argparse_callback_t argument_
 
 static const char *option_enum_to_str(enum argparse_option_t option) {
 	switch (option) {
+		case ARG_RANDOM_BTLE_ADDRESS: return "ARG_RANDOM_BTLE_ADDRESS";
 		case ARG_USER: return "ARG_USER";
 		case ARG_CHOWN: return "ARG_CHOWN";
 		case ARG_DESTINATION_ADDRESS: return "ARG_DESTINATION_ADDRESS";
